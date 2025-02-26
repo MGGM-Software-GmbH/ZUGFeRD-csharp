@@ -1938,7 +1938,7 @@ namespace s2industries.ZUGFeRD.Test
             lineItem.AddAdditionalReferencedDocument("xyz", AdditionalReferencedDocumentTypeCode.ReferenceDocument, ReferenceTypeCodes.AAB, timestamp); // To align with PEPPOL-EN16931-R101, this shall be ignored
             lineItem.AddAdditionalReferencedDocument("abc", AdditionalReferencedDocumentTypeCode.InvoiceDataSheet, ReferenceTypeCodes.PP, timestamp);
 
-            lineItem.UnitQuantity = 3m;
+            lineItem.NetQuantity = 3m;
             lineItem.ActualDeliveryDate = timestamp;
 
             lineItem.ApplicableProductCharacteristics.Add(new ApplicableProductCharacteristic
@@ -3128,7 +3128,7 @@ namespace s2industries.ZUGFeRD.Test
             path = _makeSurePathIsCrossPlatformCompatible(path);
 
             InvoiceDescriptor desc = InvoiceDescriptor.Load(path);
-            Assert.IsNull(desc.GetTradeLineItems().First().UnitQuantity);
+            Assert.IsNull(desc.GetTradeLineItems().First().NetQuantity);
             Assert.IsNull(desc.GetTradeLineItems().First().ChargeFreeQuantity);
             Assert.IsNotNull(desc.GetTradeLineItems().First().PackageQuantity);
         } // !TestTradeLineItemUnitChargeFreePackageQuantity()

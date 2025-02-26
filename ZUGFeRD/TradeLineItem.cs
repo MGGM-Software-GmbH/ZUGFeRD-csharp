@@ -75,13 +75,6 @@ namespace s2industries.ZUGFeRD
         public string Description { get; set; }
 
         /// <summary>
-        /// Included amount
-        ///
-        /// BT-149
-        /// </summary>
-        public decimal? UnitQuantity { get; set; }
-
-        /// <summary>
         /// Invoiced quantity
         ///
         /// BT-129

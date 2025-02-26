@@ -588,9 +588,9 @@ namespace s2industries.ZUGFeRD
                 else if (tradeLineItem.NetUnitPrice.HasValue)
                 {
                     total = tradeLineItem.NetUnitPrice.Value * tradeLineItem.BilledQuantity;
-                    if (tradeLineItem.UnitQuantity.HasValue && (tradeLineItem.UnitQuantity.Value != 0))
+                    if (tradeLineItem.NetQuantity.HasValue && (tradeLineItem.NetQuantity.Value != 0))
                     {
-                        total /= tradeLineItem.UnitQuantity.Value;
+                        total /= tradeLineItem.NetQuantity.Value;
                     }
                 }
 
