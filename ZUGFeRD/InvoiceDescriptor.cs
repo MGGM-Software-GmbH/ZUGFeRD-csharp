@@ -191,6 +191,20 @@ namespace s2industries.ZUGFeRD
         public string SellerReferenceNo { get; set; } = String.Empty;
 
         /// <summary>
+        /// A group of business terms providing information about the Seller's tax representative.
+        /// BG-11
+        /// </summary>
+        public Party SellerTaxRepresentative { get; set; }
+
+        /// <summary>
+        /// List of tax registration numbers for the seller.
+        ///
+        /// BT-63
+        /// </summary>
+        [Obsolete("This property will not be available any more with version 18.0. Please use GetSellerTaxRepresentativeTaxRegistration() instead")]
+        public List<TaxRegistration> SellerTaxRepresentativeTaxRegistration { get; internal set; } = new List<TaxRegistration>();
+
+        /// <summary>
         /// This party is optional and only relevant for Extended profile
         /// </summary>
         public Party Invoicee { get; set; }
@@ -863,6 +877,22 @@ namespace s2industries.ZUGFeRD
                 SchemeID = schemeID
             });
         } // !AddSellerTaxRegistration()
+
+        /// <summary>
+        /// Adds a tax registration number for the seller's tax representative.
+        ///
+        /// BT-11
+        /// </summary>
+        /// <param name="no">The tax registration number.</param>
+        /// <param name="schemeID">The tax registration scheme identifier.</param>
+        public void AddSellerTaxRepresentativeTaxRegistration(string no, TaxRegistrationSchemeID schemeID)
+        {
+            this.SellerTaxRepresentativeTaxRegistration.Add(new TaxRegistration()
+            {
+                No = no,
+                SchemeID = schemeID
+            });
+        } // !AddSellerTaxRepresentativeTaxRegistration()
 
         /// <summary>
         /// Adds a tax registration number for the ship to trade party.
@@ -2066,6 +2096,16 @@ namespace s2industries.ZUGFeRD
             return this.SellerTaxRegistration;
         } // !GetSellerTaxRegistration()
 
+        /// <summary>
+        /// List of tax registration numbers for the seller's Tax representative.
+        ///
+        // BT-63
+        /// </summary>
+        /// <returns></returns>
+        public List<TaxRegistration> GetSellerTaxRepresentativeTaxRegistration()
+        {
+            return this.SellerTaxRepresentativeTaxRegistration;
+        } // !GetSellerTaxRepresentativeTaxRegistration()
         /// <summary>
         /// 
         /// </summary>
