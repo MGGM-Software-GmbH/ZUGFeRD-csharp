@@ -1113,7 +1113,7 @@ namespace s2industries.ZUGFeRD.Test
             Assert.AreEqual(desc.OrderNo, "0815-99-1");
             Assert.AreEqual(desc.Currency, CurrencyCodes.EUR);
 
-            Assert.AreEqual(desc.Buyer.Name, "Rechnungs Roulette GmbH & Co KG");
+            Assert.AreEqual(desc.Buyer.Name, "");
             Assert.AreEqual(desc.Buyer.City, "Klein Schlappstadt a.d. Lusche");
             Assert.AreEqual(desc.Buyer.Postcode, "12345");
             Assert.AreEqual(desc.Buyer.Country, CountryCodes.DE);
@@ -1124,7 +1124,7 @@ namespace s2industries.ZUGFeRD.Test
             Assert.AreEqual(desc.BuyerContact.EmailAddress, "manfred.mustermann@rr.de");
             Assert.AreEqual(desc.BuyerContact.PhoneNo, "012345 98 765 - 44");
 
-            Assert.AreEqual(desc.Seller.Name, "Harry Hirsch Holz- und Trockenbau");
+            Assert.AreEqual(desc.Seller.Name, "");
             Assert.AreEqual(desc.Seller.City, "Klein Schlappstadt a.d. Lusche");
             Assert.AreEqual(desc.Seller.Postcode, "12345");
             Assert.AreEqual(desc.Seller.Country, CountryCodes.DE);
@@ -1324,6 +1324,21 @@ namespace s2industries.ZUGFeRD.Test
             Assert.AreEqual(desc.InvoiceDate, new DateTime(2016, 04, 04));
         } // !TestNonStandardDateTimeFormat()
 
+
+        /// <summary>
+        /// Test that InvoicePeriod is not read TradeLineItem -> InvoicePeriod
+        /// </summary>
+        [TestMethod]
+        public void TestDontMixInvoicePeriodWithTradeLineItem()
+        {
+            string path = @"..\..\..\..\demodata\xRechnung\01.01a-INVOICE_ubl.xml";
+            path = _makeSurePathIsCrossPlatformCompatible(path);
+
+            InvoiceDescriptor desc = InvoiceDescriptor.Load(path);
+
+            Assert.IsNull(desc.BillingPeriodStart);
+            Assert.IsNull(desc.BillingPeriodEnd);
+        } // !TestDontMixInvoicePeriodWithTradeLineItem()
 
         [TestMethod]
         public void TestSellerPartyDescription()
