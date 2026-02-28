@@ -958,7 +958,7 @@ namespace s2industries.ZUGFeRD
 
                 writer.WriteStartElement("cac", "Party", this._Descriptor.Profile);
 
-                if (ElectronicAddress != null)
+                if (!String.IsNullOrWhiteSpace(ElectronicAddress?.Address))
                 {
                     writer.WriteStartElement("cbc", "EndpointID");
                     writer.WriteAttributeString("schemeID", ElectronicAddress.ElectronicAddressSchemeID.EnumToString());
