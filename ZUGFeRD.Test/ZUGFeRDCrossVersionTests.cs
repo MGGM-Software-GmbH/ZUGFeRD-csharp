@@ -365,8 +365,10 @@ namespace s2industries.ZUGFeRD.Test
             Tax zeroRatedTax = loadedInvoice.Taxes.Single(tax => tax.CategoryCode == TaxCategoryCodes.Z);
             Tax exemptTax = loadedInvoice.Taxes.Single(tax => tax.CategoryCode == TaxCategoryCodes.E);
 
+            Assert.AreEqual(TaxTypes.VAT, zeroRatedTax.TypeCode);
             Assert.AreEqual(String.Empty, zeroRatedTax.ExemptionReason);
             Assert.IsNull(zeroRatedTax.ExemptionReasonCode);
+            Assert.AreEqual(TaxTypes.VAT, exemptTax.TypeCode);
             Assert.AreEqual("Exempt reason", exemptTax.ExemptionReason);
             Assert.AreEqual(TaxExemptionReasonCodes.VATEX_EU_132, exemptTax.ExemptionReasonCode);
         } // !TestVATBreakdownExemptionReasons()
