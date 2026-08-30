@@ -1156,7 +1156,7 @@ namespace s2industries.ZUGFeRD
 
                 writer.WriteElementString("ram", "TypeCode", tax.TypeCode.EnumToString());
 
-                // no exemption reason for tax category Z (reverse charge) according to BR-Z-10
+                // BR-Z-10: zero-rated VAT breakdowns must not include exemption reasons.
                 if (!tax.CategoryCode.HasValue || (tax.CategoryCode.Value != TaxCategoryCodes.Z))
                 {
                     writer.WriteOptionalElementString("ram", "ExemptionReason", tax.ExemptionReason);
@@ -1184,7 +1184,7 @@ namespace s2industries.ZUGFeRD
                     writer.WriteElementString("ram", "CategoryCode", tax.CategoryCode.EnumToString());
                 }
 
-                // no exemption reason for tax category Z (reverse charge) according to BR-Z-10
+                // BR-Z-10: zero-rated VAT breakdowns must not include exemption reasons.
                 if (tax.ExemptionReasonCode.HasValue &&
                     (!tax.CategoryCode.HasValue || (tax.CategoryCode.Value != TaxCategoryCodes.Z)))
                 {

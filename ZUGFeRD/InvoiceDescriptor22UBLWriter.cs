@@ -497,11 +497,15 @@ namespace s2industries.ZUGFeRD
                         _Writer.WriteElementString("cbc", "Percent", _formatDecimal(tax.Percent));
                     }
 
-                    if (tax.ExemptionReasonCode.HasValue)
+                    // BR-Z-10: zero-rated VAT breakdowns must not include exemption reasons.
+                    if (!tax.CategoryCode.HasValue || tax.CategoryCode.Value != TaxCategoryCodes.Z)
                     {
-                        _Writer.WriteElementString("cbc", "TaxExemptionReasonCode", tax.ExemptionReasonCode.Value.EnumToString());
+                        if (tax.ExemptionReasonCode.HasValue)
+                        {
+                            _Writer.WriteElementString("cbc", "TaxExemptionReasonCode", tax.ExemptionReasonCode.Value.EnumToString());
+                        }
+                        _Writer.WriteOptionalElementString("cbc", "TaxExemptionReason", tax.ExemptionReason);
                     }
-                    _Writer.WriteOptionalElementString("cbc", "TaxExemptionReason", tax.ExemptionReason);
                     _Writer.WriteStartElement("cac", "TaxScheme");
                     _Writer.WriteElementString("cbc", "ID", tax.TypeCode.EnumToString());
                     _Writer.WriteEndElement(); // !TaxScheme

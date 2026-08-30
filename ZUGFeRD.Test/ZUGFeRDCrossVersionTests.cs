@@ -346,6 +346,33 @@ namespace s2industries.ZUGFeRD.Test
 
 
         [TestMethod]
+        [DataRow(ZUGFeRDVersion.Version20, ZUGFeRDFormats.CII, Profile.Extended)]
+        [DataRow(ZUGFeRDVersion.Version23, ZUGFeRDFormats.CII, Profile.Extended)]
+        [DataRow(ZUGFeRDVersion.Version23, ZUGFeRDFormats.UBL, Profile.XRechnung)]
+        public void TestVATBreakdownExemptionReasons(ZUGFeRDVersion version, ZUGFeRDFormats format, Profile profile)
+        {
+            InvoiceDescriptor descriptor = this._InvoiceProvider.CreateInvoice();
+            descriptor.AddApplicableTradeTax(10m, 0m, 0m, TaxTypes.VAT, TaxCategoryCodes.Z,
+                exemptionReasonCode: TaxExemptionReasonCodes.VATEX_EU_132, exemptionReason: "Zero rated reason");
+            descriptor.AddApplicableTradeTax(20m, 0m, 0m, TaxTypes.VAT, TaxCategoryCodes.E,
+                exemptionReasonCode: TaxExemptionReasonCodes.VATEX_EU_132, exemptionReason: "Exempt reason");
+
+            MemoryStream stream = new MemoryStream();
+            descriptor.Save(stream, version, profile, format);
+            stream.Seek(0, SeekOrigin.Begin);
+
+            InvoiceDescriptor loadedInvoice = InvoiceDescriptor.Load(stream);
+            Tax zeroRatedTax = loadedInvoice.Taxes.Single(tax => tax.CategoryCode == TaxCategoryCodes.Z);
+            Tax exemptTax = loadedInvoice.Taxes.Single(tax => tax.CategoryCode == TaxCategoryCodes.E);
+
+            Assert.AreEqual(String.Empty, zeroRatedTax.ExemptionReason);
+            Assert.IsNull(zeroRatedTax.ExemptionReasonCode);
+            Assert.AreEqual("Exempt reason", exemptTax.ExemptionReason);
+            Assert.AreEqual(TaxExemptionReasonCodes.VATEX_EU_132, exemptTax.ExemptionReasonCode);
+        } // !TestVATBreakdownExemptionReasons()
+
+
+        [TestMethod]
         [DataRow(ZUGFeRDVersion.Version1)]
         [DataRow(ZUGFeRDVersion.Version20)]
         [DataRow(ZUGFeRDVersion.Version23)]
