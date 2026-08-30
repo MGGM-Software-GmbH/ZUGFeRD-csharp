@@ -1722,7 +1722,7 @@ namespace s2industries.ZUGFeRD
 
                 writer.WriteElementString("ram", "TypeCode", tax.TypeCode.EnumToString());
 
-                // BR-Z-10: zero-rated VAT breakdowns must not include exemption reasons.
+                // BR-Z-10 omits the CII 2.3 exemption reason text for zero-rated VAT breakdowns.
                 if (!tax.CategoryCode.HasValue || (tax.CategoryCode.Value != TaxCategoryCodes.Z))
                 {
                     writer.WriteOptionalElementString("ram", "ExemptionReason", tax.ExemptionReason);
@@ -1750,7 +1750,7 @@ namespace s2industries.ZUGFeRD
                     writer.WriteElementString("ram", "CategoryCode", tax.CategoryCode.EnumToString());
                 }
 
-                // BR-Z-10: zero-rated VAT breakdowns must not include exemption reasons.
+                // BR-Z-10 omits the CII 2.3 exemption reason code for zero-rated VAT breakdowns.
                 if (tax.ExemptionReasonCode.HasValue &&
                     (!tax.CategoryCode.HasValue || (tax.CategoryCode.Value != TaxCategoryCodes.Z)))
                 {
