@@ -1416,6 +1416,63 @@ namespace s2industries.ZUGFeRD.Test
 
 
         [TestMethod]
+        public void TestTaxTotalAmountBT110AndBT111DualCurrencyUBL()
+        {
+            InvoiceDescriptor desc = _InvoiceProvider.CreateInvoice();
+            desc.SetTaxTotalInAccountingCurrency(62.50m, CurrencyCodes.CHF);
+
+            using MemoryStream invoiceStream = new();
+            desc.Save(invoiceStream, ZUGFeRDVersion.Version23, Profile.XRechnung, ZUGFeRDFormats.UBL);
+
+            XmlDocument xmlDocument = new();
+            xmlDocument.LoadXml(Encoding.UTF8.GetString(invoiceStream.ToArray()));
+            XmlNamespaceManager namespaceManager = new(xmlDocument.NameTable);
+            namespaceManager.AddNamespace("cac", "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2");
+            namespaceManager.AddNamespace("cbc", "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2");
+
+            XmlNodeList? taxTotalNodes = xmlDocument.SelectNodes("/*/cac:TaxTotal", namespaceManager);
+            Assert.IsNotNull(taxTotalNodes);
+            Assert.AreEqual(2, taxTotalNodes.Count, "Two TaxTotal groups expected for BT-110 and BT-111");
+
+            XmlNode? bt110Node = xmlDocument.SelectSingleNode("/*/cac:TaxTotal[cbc:TaxAmount/@currencyID='EUR']", namespaceManager);
+            Assert.IsNotNull(bt110Node, "BT-110 TaxTotal in invoice currency must be present");
+            Assert.IsGreaterThan(0, bt110Node.SelectNodes("cac:TaxSubtotal", namespaceManager)!.Count, "BT-110 TaxTotal must contain the VAT breakdown");
+
+            XmlNode? bt111Node = xmlDocument.SelectSingleNode("/*/cac:TaxTotal[cbc:TaxAmount/@currencyID='CHF']", namespaceManager);
+            Assert.IsNotNull(bt111Node, "BT-111 TaxTotal in accounting currency must be present");
+            Assert.AreEqual(0, bt111Node.SelectNodes("cac:TaxSubtotal", namespaceManager)!.Count, "BT-111 TaxTotal must not contain a VAT breakdown");
+
+            // The currency attributes, not the order of the TaxTotal groups, determine BT-110 and BT-111.
+            XmlNode documentElement = xmlDocument.DocumentElement!;
+            documentElement.InsertBefore(taxTotalNodes[1]!, taxTotalNodes[0]);
+
+            using MemoryStream reorderedStream = new(Encoding.UTF8.GetBytes(xmlDocument.OuterXml));
+            InvoiceDescriptor loadedInvoice = InvoiceDescriptor.Load(reorderedStream);
+            Assert.AreEqual(56.87m, loadedInvoice.TaxTotalAmount, "BT-110 must be selected by invoice currency");
+            Assert.AreEqual(62.50m, loadedInvoice.TaxTotalAmountInAccountingCurrency, "BT-111 must be selected by accounting currency");
+        } // !TestTaxTotalAmountBT110AndBT111DualCurrencyUBL()
+
+
+        [TestMethod]
+        public void TestTaxTotalAmountBT110OnlyWhenTaxCurrencyEqualsCurrencyUBL()
+        {
+            InvoiceDescriptor desc = _InvoiceProvider.CreateInvoice();
+            desc.SetTaxTotalInAccountingCurrency(56.87m, CurrencyCodes.EUR);
+
+            using MemoryStream invoiceStream = new();
+            desc.Save(invoiceStream, ZUGFeRDVersion.Version23, Profile.XRechnung, ZUGFeRDFormats.UBL);
+
+            XmlDocument xmlDocument = new();
+            xmlDocument.LoadXml(Encoding.UTF8.GetString(invoiceStream.ToArray()));
+            XmlNamespaceManager namespaceManager = new(xmlDocument.NameTable);
+            namespaceManager.AddNamespace("cac", "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2");
+
+            Assert.AreEqual(1, xmlDocument.SelectNodes("/*/cac:TaxTotal", namespaceManager)!.Count,
+                "Only BT-110 expected when accounting currency equals invoice currency");
+        } // !TestTaxTotalAmountBT110OnlyWhenTaxCurrencyEqualsCurrencyUBL()
+
+
+        [TestMethod]
         public void BT27Bt44PuzzlingInUBLandCII()
         {
             string buyerLegalName = System.Guid.NewGuid().ToString();

@@ -402,7 +402,13 @@ namespace s2industries.ZUGFeRD
             retval.ChargeTotalAmount = XmlUtils.NodeAsDecimal(doc.DocumentElement, "//cac:LegalMonetaryTotal/cbc:ChargeTotalAmount", nsmgr);
             retval.AllowanceTotalAmount = XmlUtils.NodeAsDecimal(doc.DocumentElement, "//cac:LegalMonetaryTotal/cbc:AllowanceTotalAmount", nsmgr);
             retval.TaxBasisAmount = XmlUtils.NodeAsDecimal(doc.DocumentElement, "//cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount", nsmgr);
-            retval.TaxTotalAmount = XmlUtils.NodeAsDecimal(doc.DocumentElement, "//cac:TaxTotal/cbc:TaxAmount", nsmgr);
+            retval.TaxTotalAmount = XmlUtils.NodeAsDecimal(doc.DocumentElement,
+                $"/*/cac:TaxTotal/cbc:TaxAmount[@currencyID='{retval.Currency.EnumToString()}']", nsmgr);
+            if (retval.TaxCurrency.HasValue && (retval.TaxCurrency.Value != retval.Currency))
+            {
+                retval.TaxTotalAmountInAccountingCurrency = XmlUtils.NodeAsDecimal(doc.DocumentElement,
+                    $"/*/cac:TaxTotal/cbc:TaxAmount[@currencyID='{retval.TaxCurrency.Value.EnumToString()}']", nsmgr);
+            }
             retval.GrandTotalAmount = XmlUtils.NodeAsDecimal(doc.DocumentElement, "//cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount", nsmgr);
             retval.RoundingAmount = XmlUtils.NodeAsDecimal(doc.DocumentElement, "//cac:LegalMonetaryTotal/cbc:PayableRoundingAmount", nsmgr);
             retval.TotalPrepaidAmount = XmlUtils.NodeAsDecimal(doc.DocumentElement, "//cac:LegalMonetaryTotal/cbc:PrepaidAmount", nsmgr);

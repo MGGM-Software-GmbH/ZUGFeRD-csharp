@@ -513,6 +513,21 @@ namespace s2industries.ZUGFeRD
                 _Writer.WriteEndElement(); // !TaxTotal
             }
 
+            if (this._Descriptor.AnyApplicableTradeTaxes() &&
+                this._Descriptor.TaxTotalAmount.HasValue &&
+                this._Descriptor.TaxCurrency.HasValue &&
+                (this._Descriptor.TaxCurrency.Value != this._Descriptor.Currency) &&
+                this._Descriptor.TaxTotalAmountInAccountingCurrency.HasValue)
+            {
+                // BT-111 uses a separate TaxTotal group without TaxSubtotal elements.
+                _Writer.WriteStartElement("cac", "TaxTotal");
+                _Writer.WriteStartElement("cbc", "TaxAmount");
+                _Writer.WriteAttributeString("currencyID", this._Descriptor.TaxCurrency.Value.EnumToString());
+                _Writer.WriteValue(_formatDecimal(this._Descriptor.TaxTotalAmountInAccountingCurrency.Value));
+                _Writer.WriteEndElement(); // !TaxAmount
+                _Writer.WriteEndElement(); // !TaxTotal
+            }
+
             _WriteComment(_Writer, options, InvoiceCommentConstants.SpecifiedTradeSettlementHeaderMonetarySummationComment);
             _Writer.WriteStartElement("cac", "LegalMonetaryTotal");
             _writeOptionalAmount(_Writer, "cbc", "LineExtensionAmount", this._Descriptor.LineTotalAmount, forceCurrency: true);
