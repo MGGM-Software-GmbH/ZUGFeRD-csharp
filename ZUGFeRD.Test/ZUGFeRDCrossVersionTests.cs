@@ -1366,6 +1366,8 @@ namespace s2industries.ZUGFeRD.Test
 
             XmlNodeList taxTotalNodes = xmlDoc.SelectNodes("//ram:SpecifiedTradeSettlementHeaderMonetarySummation/ram:TaxTotalAmount", nsmgr);
             Assert.AreEqual(2, taxTotalNodes.Count, "Two TaxTotalAmount elements expected when TaxCurrency differs from Currency");
+            Assert.AreEqual(1, xmlDoc.SelectNodes("//ram:TaxCurrencyCode", nsmgr).Count,
+                "BT-6 must be written when accounting currency differs from invoice currency");
 
             // BT-110 must use invoice currency (BT-5)
             var bt110Node = xmlDoc.SelectSingleNode("//ram:SpecifiedTradeSettlementHeaderMonetarySummation/ram:TaxTotalAmount[@currencyID='EUR']", nsmgr);
@@ -1412,6 +1414,8 @@ namespace s2industries.ZUGFeRD.Test
 
             XmlNodeList taxTotalNodes = xmlDoc.SelectNodes("//ram:SpecifiedTradeSettlementHeaderMonetarySummation/ram:TaxTotalAmount", nsmgr);
             Assert.AreEqual(1, taxTotalNodes.Count, "Only BT-110 expected when TaxCurrency equals Currency");
+            Assert.AreEqual(0, xmlDoc.SelectNodes("//ram:TaxCurrencyCode", nsmgr).Count,
+                "BR-53 forbids BT-6 when no BT-111 is written");
         } // !TestTaxTotalAmountBT110OnlyWhenTaxCurrencyEqualsCurrency()
 
 
@@ -1433,6 +1437,8 @@ namespace s2industries.ZUGFeRD.Test
             XmlNodeList? taxTotalNodes = xmlDocument.SelectNodes("/*/cac:TaxTotal", namespaceManager);
             Assert.IsNotNull(taxTotalNodes);
             Assert.AreEqual(2, taxTotalNodes.Count, "Two TaxTotal groups expected for BT-110 and BT-111");
+            Assert.AreEqual(1, xmlDocument.SelectNodes("/*/cbc:TaxCurrencyCode", namespaceManager)!.Count,
+                "BT-6 must be written when accounting currency differs from invoice currency");
 
             XmlNode? bt110Node = xmlDocument.SelectSingleNode("/*/cac:TaxTotal[cbc:TaxAmount/@currencyID='EUR']", namespaceManager);
             Assert.IsNotNull(bt110Node, "BT-110 TaxTotal in invoice currency must be present");
@@ -1466,9 +1472,12 @@ namespace s2industries.ZUGFeRD.Test
             xmlDocument.LoadXml(Encoding.UTF8.GetString(invoiceStream.ToArray()));
             XmlNamespaceManager namespaceManager = new(xmlDocument.NameTable);
             namespaceManager.AddNamespace("cac", "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2");
+            namespaceManager.AddNamespace("cbc", "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2");
 
             Assert.AreEqual(1, xmlDocument.SelectNodes("/*/cac:TaxTotal", namespaceManager)!.Count,
                 "Only BT-110 expected when accounting currency equals invoice currency");
+            Assert.AreEqual(0, xmlDocument.SelectNodes("/*/cbc:TaxCurrencyCode", namespaceManager)!.Count,
+                "BR-53 forbids BT-6 when no BT-111 is written");
         } // !TestTaxTotalAmountBT110OnlyWhenTaxCurrencyEqualsCurrencyUBL()
 
 

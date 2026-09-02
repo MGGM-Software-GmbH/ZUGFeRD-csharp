@@ -881,7 +881,8 @@ namespace s2industries.ZUGFeRD
 
             //   3. TaxCurrencyCode (optional)
             //   BT-6
-            if (this._Descriptor.TaxCurrency.HasValue)
+            // BR-53 requires BT-111 whenever BT-6 is present; BT-111 is only written for a different accounting currency.
+            if (this._Descriptor.TaxCurrency.HasValue && (this._Descriptor.TaxCurrency.Value != this._Descriptor.Currency))
             {
                 _Writer.WriteElementString("ram", "TaxCurrencyCode", this._Descriptor.TaxCurrency.Value.EnumToString(), profile: Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
             }

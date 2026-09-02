@@ -123,7 +123,8 @@ namespace s2industries.ZUGFeRD
             _Writer.WriteElementString("cbc", "DocumentCurrencyCode", this._Descriptor.Currency.EnumToString());
 
             //   BT-6
-            if (this._Descriptor.TaxCurrency.HasValue)
+            // BR-53 requires BT-111 whenever BT-6 is present; BT-111 is only written for a different accounting currency.
+            if (this._Descriptor.TaxCurrency.HasValue && (this._Descriptor.TaxCurrency.Value != this._Descriptor.Currency))
             {
                 _Writer.WriteElementString("cbc", "TaxCurrencyCode", this._Descriptor.TaxCurrency.Value.EnumToString());
             }
