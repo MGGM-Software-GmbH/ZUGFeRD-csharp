@@ -1167,6 +1167,7 @@ namespace s2industries.ZUGFeRD
 
         private void _writeOptionalTaxes(ProfileAwareXmlTextWriter writer, InvoiceFormatOptions options)
         {
+            // BR-Z-10 omits exemption reason text and code from zero-rated CII 2.0 VAT breakdowns.
             foreach (Tax tax in this._Descriptor.GetApplicableTradeTaxes())
             {
                 _WriteComment(writer, options, InvoiceCommentConstants.ApplicableTradeTaxComment);
@@ -1178,7 +1179,6 @@ namespace s2industries.ZUGFeRD
 
                 writer.WriteElementString("ram", "TypeCode", tax.TypeCode.EnumToString());
 
-                // no exemption reason for tax category Z (reverse charge) according to BR-Z-10
                 if (!tax.CategoryCode.HasValue || (tax.CategoryCode.Value != TaxCategoryCodes.Z))
                 {
                     writer.WriteOptionalElementString("ram", "ExemptionReason", tax.ExemptionReason);
@@ -1206,7 +1206,6 @@ namespace s2industries.ZUGFeRD
                     writer.WriteElementString("ram", "CategoryCode", tax.CategoryCode.EnumToString());
                 }
 
-                // no exemption reason for tax category Z (reverse charge) according to BR-Z-10
                 if (tax.ExemptionReasonCode.HasValue &&
                     (!tax.CategoryCode.HasValue || (tax.CategoryCode.Value != TaxCategoryCodes.Z)))
                 {
