@@ -348,29 +348,54 @@ namespace s2industries.ZUGFeRD.Test
         [TestMethod]
         [DataRow(ZUGFeRDVersion.Version20, ZUGFeRDFormats.CII, Profile.Extended)]
         [DataRow(ZUGFeRDVersion.Version23, ZUGFeRDFormats.CII, Profile.Extended)]
+        [DataRow(ZUGFeRDVersion.Version23, ZUGFeRDFormats.CII, Profile.XRechnung)]
         [DataRow(ZUGFeRDVersion.Version23, ZUGFeRDFormats.UBL, Profile.XRechnung)]
         public void TestVATBreakdownExemptionReasons(ZUGFeRDVersion version, ZUGFeRDFormats format, Profile profile)
         {
+            // BR-S-10, BR-Z-10, BR-AF-10 (L) and BR-AG-10 (M) forbid BT-120/BT-121, BR-E-10 requires them
+            Dictionary<TaxCategoryCodes, bool> reasonAllowedByCategory = new()
+            {
+                { TaxCategoryCodes.S, false },
+                { TaxCategoryCodes.Z, false },
+                { TaxCategoryCodes.L, false },
+                { TaxCategoryCodes.M, false },
+                { TaxCategoryCodes.E, true }
+            };
+
             InvoiceDescriptor descriptor = this._InvoiceProvider.CreateInvoice();
-            descriptor.AddApplicableTradeTax(10m, 0m, 0m, TaxTypes.VAT, TaxCategoryCodes.Z,
-                exemptionReasonCode: TaxExemptionReasonCodes.VATEX_EU_132, exemptionReason: "Zero rated reason");
-            descriptor.AddApplicableTradeTax(20m, 0m, 0m, TaxTypes.VAT, TaxCategoryCodes.E,
-                exemptionReasonCode: TaxExemptionReasonCodes.VATEX_EU_132, exemptionReason: "Exempt reason");
+            descriptor.Taxes.Clear();
+            foreach (TaxCategoryCodes categoryCode in reasonAllowedByCategory.Keys)
+            {
+                descriptor.AddApplicableTradeTax(100m, 0m, 0m, TaxTypes.VAT, categoryCode,
+                    exemptionReasonCode: TaxExemptionReasonCodes.VATEX_EU_132, exemptionReason: $"Reason {categoryCode}");
+            }
 
             MemoryStream stream = new MemoryStream();
             descriptor.Save(stream, version, profile, format);
             stream.Seek(0, SeekOrigin.Begin);
 
-            InvoiceDescriptor loadedInvoice = InvoiceDescriptor.Load(stream);
-            Tax zeroRatedTax = loadedInvoice.Taxes.Single(tax => tax.CategoryCode == TaxCategoryCodes.Z);
-            Tax exemptTax = loadedInvoice.Taxes.Single(tax => tax.CategoryCode == TaxCategoryCodes.E);
+            // check the written xml directly, so the result does not depend on how the readers map missing elements
+            XDocument document = XDocument.Load(stream);
+            bool isUBL = format == ZUGFeRDFormats.UBL;
+            string breakdownName = isUBL ? "TaxCategory" : "ApplicableTradeTax";
+            string breakdownParentName = isUBL ? "TaxSubtotal" : "ApplicableHeaderTradeSettlement";
+            string categoryName = isUBL ? "ID" : "CategoryCode";
+            string reasonName = isUBL ? "TaxExemptionReason" : "ExemptionReason";
+            string reasonCodeName = isUBL ? "TaxExemptionReasonCode" : "ExemptionReasonCode";
 
-            Assert.AreEqual(TaxTypes.VAT, zeroRatedTax.TypeCode);
-            Assert.AreEqual(String.Empty, zeroRatedTax.ExemptionReason);
-            Assert.IsNull(zeroRatedTax.ExemptionReasonCode);
-            Assert.AreEqual(TaxTypes.VAT, exemptTax.TypeCode);
-            Assert.AreEqual("Exempt reason", exemptTax.ExemptionReason);
-            Assert.AreEqual(TaxExemptionReasonCodes.VATEX_EU_132, exemptTax.ExemptionReasonCode);
+            static string childValue(XElement parent, string localName) => parent.Elements().SingleOrDefault(e => e.Name.LocalName == localName)?.Value;
+
+            List<XElement> breakdowns = document.Descendants()
+                .Where(e => (e.Name.LocalName == breakdownName) && (e.Parent?.Name.LocalName == breakdownParentName))
+                .ToList();
+            Assert.HasCount(reasonAllowedByCategory.Count, breakdowns);
+
+            foreach (KeyValuePair<TaxCategoryCodes, bool> entry in reasonAllowedByCategory)
+            {
+                XElement breakdown = breakdowns.Single(b => childValue(b, categoryName) == entry.Key.ToString());
+                Assert.AreEqual(entry.Value ? $"Reason {entry.Key}" : null, childValue(breakdown, reasonName), $"BT-120 for category {entry.Key}");
+                Assert.AreEqual(entry.Value ? "VATEX-EU-132" : null, childValue(breakdown, reasonCodeName), $"BT-121 for category {entry.Key}");
+            }
         } // !TestVATBreakdownExemptionReasons()
 
 

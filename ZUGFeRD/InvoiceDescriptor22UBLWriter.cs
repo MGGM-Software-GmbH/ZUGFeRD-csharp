@@ -515,8 +515,7 @@ namespace s2industries.ZUGFeRD
                         _Writer.WriteElementString("cbc", "Percent", _formatDecimal(tax.Percent));
                     }
 
-                    // BR-Z-10: zero-rated VAT breakdowns must not include exemption reasons.
-                    if (!tax.CategoryCode.HasValue || tax.CategoryCode.Value != TaxCategoryCodes.Z)
+                    if (_AllowsTaxExemptionReason(tax.CategoryCode))
                     {
                         if (tax.ExemptionReasonCode.HasValue)
                         {
